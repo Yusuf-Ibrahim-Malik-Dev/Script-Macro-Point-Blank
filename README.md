@@ -11,7 +11,8 @@ Dilengkapi sistem **mode switching**, **stop sementara**, dan **anti-boncos timi
 
 ## 📋 Cara Pakai
 
--  file .ahk -> klick kanan -> run administrasi -> yes -> selesai.
+-  pilih file .ahk -> klick kanan -> run administrasi -> yes -> selesai
+-  jalankan game point blank -> silahkan pakai dengan bijak script macronya Ok. 
 ---
 
 ## ✨ Fitur
