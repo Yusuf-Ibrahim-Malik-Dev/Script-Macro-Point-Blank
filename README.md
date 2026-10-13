@@ -9,18 +9,9 @@ Dilengkapi sistem **mode switching**, **stop sementara**, dan **anti-boncos timi
 
 ---
 
-## 📋 Daftar Isi
+## 📋 Cara Pakai
 
-- [Fitur](#-fitur)
-- [Hotkey](#-hotkey)
-- [Instalasi](#-instalasi)
-- [Cara Pakai](#-cara-pakai)
-- [Detail Mode](#-detail-mode)
-- [Timing Configuration](#-timing-configuration)
-- [Troubleshooting](#-troubleshooting)
-- [Changelog](#-changelog)
-- [Lisensi](#-lisensi)
-
+-  file .ahk -> klick kanan -> run administrasi -> yes -> selesai.
 ---
 
 ## ✨ Fitur
