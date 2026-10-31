@@ -12,12 +12,12 @@
 ;   F7  = SG PUTER      : Tembak -> Quick Change
 ;   F8  = SPAS          : Tembak -> Quick Change
 ;   F9  = SHOTGUN ZOMBIE: Tembak -> Quick Change cepat
-;   F10 = SENJATA BIASA : BREN CENTER (nembak cepat + aim balik ke tengah)
-;   F11 = Kurangi tarikan recoil (pull down)
-;   F12 = Tambah tarikan recoil (pull down)
-;   Shift+F11 = Tap lebih CEPAT (kalau boncos, jangan dipakai)
-;   Shift+F12 = Tap lebih LAMBAT / AMAN (kalau peluru masih boncos)
-;   Ctrl+F10  = ON/OFF aim balik ke tengah setelah selesai nembak
+;   F10 = SENJATA BIASA : AUTO TAP RECOIL ORI (tap cepat selama klik ditahan)
+;   F11 = Tap LEBIH CEPAT (jeda antar tap dikurangi)
+;   F12 = Tap LEBIH LAMBAT / AMAN (jeda antar tap ditambah)
+;   Shift+F11 = Hold klik lebih PENDEK
+;   Shift+F12 = Hold klik lebih LAMA
+;   Ctrl+F10  = Reset tap recoil ke setting ORI (30 / 24 ms)
 
 ;
 ; CARA PAKAI:
@@ -27,13 +27,13 @@
 ;       tekan F4 beberapa kali (QC jadi lebih lambat), lalu tes lagi.
 ;   - Kalau sudah tidak boncos dan mau lebih cepat:
 ;       tekan F3 beberapa kali.
-;   - Mode F10 (BREN CENTER):
-;       Tahan klik kiri = nembak cepat ala BREN, tiap peluru di-tap ulang.
-;       Setelah klik dilepas, aim OTOMATIS balik ke titik awal (tengah),
-;       jadi tembakan berikutnya selalu mulai dari center lagi.
-;       Kalau crosshair masih naik  -> F12 beberapa kali.
-;       Kalau justru turun ke bawah -> F11.
-;       Kalau peluru boncos           -> Shift+F12 (tap diperlambat).
+;   - Mode F10 (AUTO TAP RECOIL ORI):
+;       Tahan klik kiri = tap cepat berulang (klik turun 30ms, jeda 24ms,
+;       klik naik) sampai klik dilepas, sama seperti macro recoil ori.
+;       Langsung berhenti begitu klik kiri dilepas.
+;       Kalau tap terlalu cepat / peluru boncos -> F12.
+;       Kalau mau lebih cepat                    -> F11.
+;       Ctrl+F10 untuk balik ke setting ori (30 / 24 ms).
 ; =========================================================================
 
 #Requires AutoHotkey v1.1
@@ -76,19 +76,19 @@ DllCall("Winmm\timeBeginPeriod", "UInt", 1)
 global MacroAktif := false
 global Mode       := "NONE"
 
-; No Recoil (senjata biasa) - BREN CENTER
-; Tiap peluru di-TAP ulang (bukan dikunci full-auto), jadi recoil tidak
-; menumpuk dan kelompok peluru tetap di tengah. Tetap terasa cepat ala BREN.
-; Setelah klik dilepas, mouse dikembalikan ke posisi awal (aim balik ke
-; tengah), jadi burst berikutnya tidak melenceng ke bawah.
-; Kalau crosshair masih naik: tekan F12 (tambah pull down).
-; Kalau crosshair malah turun : tekan F11.
-; Kalau peluru boncos / tidak keluar: tekan Shift+F12 (tap diperlambat).
-global NR_Down    := 1      ; px tarik mouse ke bawah tiap peluru
-global NR_Pulse   := 15     ; ms tahan klik per peluru (jangan terlalu kecil)
-global NR_Gap     := 18     ; ms jeda antar peluru (kecil = lebih cepat)
-global NR_MaxDown := 150    ; batas tarik ke bawah per burst (biar tidak ngunci bawah)
-global NR_Return  := true   ; aim balik ke titik awal tiap selesai nembak
+; No Recoil (senjata biasa) - AUTO TAP RECOIL ORI
+; Sama persis dengan macro recoil ori:
+;   - Klik pertama langsung ditembak (tahan 30ms lalu lepas).
+;   - Selama klik kiri DITAHAN, script tap berulang: jeda 24ms,
+;     klik turun 30ms, klik naik.
+;   - Begitu klik kiri dilepas, tap langsung berhenti (tidak ada sisa).
+;
+; Timing default = setting ORI (Hold 30ms, Jeda 24ms).
+; F11/F12  = ubah jeda antar tap (cepat / lambat).
+; Shift+F11/F12 = ubah lama tahan klik.
+; Ctrl+F10 = balik ke setting ORI.
+global NR_Down    := 30     ; ms klik ditahan tiap tap (ori: 30)
+global NR_Gap     := 24     ; ms jeda antar tap (ori: 24)
 
 ; Quick Change
 global QC_Step    := 26     ; ms tahan + jeda per tombol (Q / 3 / 1)
@@ -122,7 +122,7 @@ global SGZ_Seq    := "3 1"       ; paling cepat; kalau boncos coba "q 3 1"
 global SGZ_Ready  := 150
 
 ; ============================== HOTKEY ==================================
-Tampil("MACRO READY`nF6 Sniper | F7 SG | F8 SPAS | F9 Zombie | F10 No Recoil`nF2 = status / setting")
+Tampil("MACRO READY`nF6 Sniper | F7 SG | F8 SPAS | F9 Zombie | F10 Auto Tap Recoil`nF2 = status / setting")
 
 F1::
 Click, Up
@@ -135,7 +135,7 @@ ExitApp
 return
 
 F2::
-Tampil("MODE : " . NamaMode(Mode) . "`nQC Offset : " . QC_Offset . " ms`nRecoil Down : " . NR_Down . " px / peluru`nTap : " . NR_Pulse . " ms tahan + " . NR_Gap . " ms jeda`nAim balik ke tengah : " . (NR_Return ? "ON" : "OFF") . "`n`nF3 = QC cepat | F4 = QC lambat`nF11/F12 = tarikan recoil`nShift+F11/F12 = kecepatan tap")
+Tampil("MODE : " . NamaMode(Mode) . "`nQC Offset : " . QC_Offset . " ms`nRecoil : AUTO TAP (ori)  Hold " . NR_Down . " ms / Jeda " . NR_Gap . " ms`n`nF3 = QC cepat | F4 = QC lambat`nF11/F12 = kecepatan tap`nShift+F11/F12 = lama tahan klik`nCtrl+F10 = reset tap ke ori")
 return
 
 F3::
@@ -176,40 +176,41 @@ SetMode("SGZ", "SHOTGUN ZOMBIE + QC")
 return
 
 F10::
-SetMode("NORMAL", "SENJATA BIASA - NO RECOIL")
+SetMode("NORMAL", "SENJATA BIASA - AUTO TAP RECOIL ORI")
 return
 
 F11::
-NR_Down -= 1
-if (NR_Down < 0)
-    NR_Down := 0
-Tampil("Recoil pull DOWN: " . NR_Down . " px")
+NR_Gap -= 2
+if (NR_Gap < 8)
+    NR_Gap := 8
+Tampil("Tap LEBIH CEPAT`nJeda antar tap: " . NR_Gap . " ms")
 return
 
 F12::
-NR_Down += 1
-if (NR_Down > 40)
-    NR_Down := 40
-Tampil("Recoil pull DOWN: " . NR_Down . " px")
+NR_Gap += 2
+if (NR_Gap > 120)
+    NR_Gap := 120
+Tampil("Tap LEBIH LAMBAT / AMAN`nJeda antar tap: " . NR_Gap . " ms")
 return
 
 +F11::
-NR_Gap -= 2
-if (NR_Gap < 10)
-    NR_Gap := 10
-Tampil("Tap LEBIH CEPAT`nJeda: " . NR_Gap . " ms`nKalau boncos tekan Shift+F12")
+NR_Down -= 2
+if (NR_Down < 10)
+    NR_Down := 10
+Tampil("Hold klik LEBIH PENDEK`nHold: " . NR_Down . " ms")
 return
 
 +F12::
-NR_Gap += 2
-if (NR_Gap > 80)
-    NR_Gap := 80
-Tampil("Tap LEBIH LAMBAT / AMAN`nJeda: " . NR_Gap . " ms")
+NR_Down += 2
+if (NR_Down > 100)
+    NR_Down := 100
+Tampil("Hold klik LEBIH LAMA`nHold: " . NR_Down . " ms")
 return
 
 ^F10::
-NR_Return := !NR_Return
-Tampil("Aim balik ke tengah: " . (NR_Return ? "ON" : "OFF"))
+NR_Down := 30
+NR_Gap  := 24
+Tampil("Tap recoil direset ke setting ORI`nHold: " . NR_Down . " ms | Jeda: " . NR_Gap . " ms")
 return
 
 ; ======================= KLIK KIRI (SAAT MACRO ON) ======================
@@ -226,14 +227,7 @@ SatuSiklus()
 
 ; Kalau ditahan, ulang terus
 while (GetKeyState("LButton", "P") && MacroAktif)
-{
-    if (Mode = "NORMAL")
-    {
-        NoRecoil()
-        break
-    }
     SatuSiklus()
-}
 
 Click, Up
 return
@@ -277,7 +271,7 @@ SetMode(m, label)
     MacroAktif := true
     SoundBeep, 850, 90
     if (m = "NORMAL")
-        Tampil("MODE: " . label . "`nF12 kalau crosshair masih naik")
+        Tampil("MODE: " . label . "`nTahan klik = tap cepat | F12 kalau boncos")
     else
         Tampil("MODE: " . label . "`nF4 kalau boncos | F3 kalau mau lebih cepat")
 }
@@ -293,7 +287,7 @@ NamaMode(m)
     if (m = "SGZ")
         return "SHOTGUN ZOMBIE"
     if (m = "NORMAL")
-        return "SENJATA BIASA (NO RECOIL)"
+        return "SENJATA BIASA (RECOIL ORI / AUTO TAP)"
     return "OFF"
 }
 
@@ -342,38 +336,37 @@ QC(hold, reg, seq, ready)
 }
 
 ; -------------------------------------------------------------------------
-; NO RECOIL: BREN CENTER
-; Tiap peluru di-TAP ulang (Down -> jeda -> Up -> jeda), bukan ditahan
-; full-auto. Recoil tidak sempat menumpuk, jadi kelompok peluru tetap
-; di tengah. Mouse ditarik sedikit ke bawah tiap peluru (NR_Down) supaya
-; crosshair tidak naik, lalu SETELAH SELESAI NEMBAK mouse dikembalikan
-; ke posisi awal (NR_Return) supaya aim balik ke tengah.
+; NO RECOIL: AUTO TAP (dari MACRO RECOIL ORI)
+; Klik ditahan -> tap cepat berulang: klik turun NR_Down ms, klik naik,
+; jeda NR_Gap ms, ulangi. Langsung stop begitu klik kiri dilepas.
 ; -------------------------------------------------------------------------
 NoRecoil()
 {
-    global NR_Down, NR_Pulse, NR_Gap, NR_MaxDown, NR_Return, MacroAktif, Mode
+    global NR_Down, NR_Gap
+    global MacroAktif, Mode
 
-    totalTurun := 0
+    ; Tembak pertama langsung
+    Click, Down
+    Sleep, %NR_Down%
+    Click, Up
 
+    ; Loop selama LButton ditahan
     while (GetKeyState("LButton", "P") && MacroAktif && Mode = "NORMAL")
     {
-        ; 1. Tarik recoil sedikit (kalau NR_Down = 0 berarti murni center)
-        if (NR_Down > 0 && totalTurun < NR_MaxDown)
-        {
-            DllCall("mouse_event", "UInt", 0x0001, "Int", 0, "Int", NR_Down, "UInt", 0, "UPtr", 0)
-            totalTurun += NR_Down
-        }
+        ; Cek sebelum jeda biar langsung stop pas lepas
+        if (!GetKeyState("LButton", "P") || !MacroAktif || Mode != "NORMAL")
+            break
 
-        ; 2. Tap 1 peluru -> tidak full-auto nyangkut = tetap center
-        SendInput, {LButton Down}
-        Sleep, %NR_Pulse%
-        SendInput, {LButton Up}
         Sleep, %NR_Gap%
+
+        if (!GetKeyState("LButton", "P") || !MacroAktif || Mode != "NORMAL")
+            break
+
+        Click, Down
+        Sleep, %NR_Down%
+        Click, Up
     }
 
-    SendInput, {LButton Up}
-
-    ; 3. Balikkan aim ke posisi awal (tengah) setelah selesai nembak
-    if (NR_Return && totalTurun > 0)
-        DllCall("mouse_event", "UInt", 0x0001, "Int", 0, "Int", -totalTurun, "UInt", 0, "UPtr", 0)
+    ; Pastikan release terakhir
+    Click, Up
 }
